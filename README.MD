@@ -2,6 +2,8 @@
 
 This is the offical repository for the paper Deep Self-Supervised Hierarchical Metrical Structure Modeling under review for ICASSP 2023 (single-blinded).
 
+![visualization.png](https://github.com/music-x-lab/Self-Supervised-Metrical-Structure/blob/main/screenshot/a.png)
+
 ## Resources
 
 * Code and README
