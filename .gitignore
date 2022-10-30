@@ -1,0 +1,8 @@
+/cache_data
+/temp
+/.idea
+/__pycache__
+*.pyc
+/figure
+/report
+desktop.ini
