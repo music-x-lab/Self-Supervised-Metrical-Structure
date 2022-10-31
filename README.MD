@@ -15,6 +15,8 @@ This is the offical repository for the paper Deep Self-Supervised Hierarchical M
 
 ## Demo
 
+All MIDI demos are suggested to be viewed using a DAW (e.g., Cakewalk, Fl Studio or GarageBand) with track-wise piano roll visualization. 
+
 See ``output`` for the full results of the MIDI analysis model on RWC-POP.
 
 * The file ends with ``_crf.mid`` is the results decoded by Conditional Random Field (CRF). Each output MIDI file contains an extra MIDI track with name Layers besides tracks from the original MIDI file. Layers is a drum track that labels L drum notes on a level-L boundary beyond measures (better viewed in an DAW with track-wise piano rolls). A downbeat without any drum notes is interpreted as a level-0 boundary.
