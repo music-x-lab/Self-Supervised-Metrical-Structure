@@ -102,7 +102,8 @@ def eval_entry(model, entry, visualize=False):
     log_final_pred[:, 1:] = log_pred[:, -4:]
     log_final_pred[:, 0] = logsumexp(log_pred[:, :-4], axis=1)
     downbeat_bins = np.array([i for i, beat in enumerate(entry.beat) if beat[1] == 1]) * BEAT_DIV
-    log_downbeat_pred = log_final_pred[downbeat_bins + MAX_OFFSET - model.net.remap_offset]
+    filtered_pred = maximum_filter1d(log_final_pred, size=5, axis=0)
+    log_downbeat_pred = filtered_pred[downbeat_bins + MAX_OFFSET - model.net.remap_offset]
     result = decode(log_downbeat_pred)
     if (entry.name != ''):
         downbeat_tags = get_rwc_annotation_gt(int(entry.name[4:]), entry.beat)
@@ -124,54 +125,6 @@ def eval_entry(model, entry, visualize=False):
         return evaluation
     else:
         return None
-
-def eval_osu(model, visualize):
-    histogram = np.zeros(16)
-    osu=datasets.create_osu_map_dataset()
-    # osu=datasets.create_osu_map_dataset('data/map_list_custom.txt', 'D:/osu!/Songs')
-    print(len(osu.entries))
-    results = []
-    # for entry in osu.where('219763').entries:
-    for entry in osu.entries[1:500]:
-        for id in range(min(entry.map_count,1)):
-            print(entry.name,entry.dict['map[%d]'%id].filepath)
-            if (not is_4_4_song(entry, 0)):
-                print('Skip')
-                continue
-            entry.append_extractor(OsuHitObjects,'hitobjects',cache_enabled=True,source='map[%d]'%id)
-            entry.append_extractor(OsuTimingPointsToSubBeat,'subbeat',cache_enabled=True,source='map[%d]'%id,beat_div=BEAT_DIV, safe_interval=0.0625)
-            y = entry.music
-            audio_length=len(y)/entry.prop.sr
-            subbeat = np.array(entry.subbeat)
-            subbeat_label = subbeat[:, 1]
-            subbeat = np.interp(np.linspace(0, len(subbeat) - 1, (len(subbeat) - 1) * SUBBEAT_DIV),
-                                np.arange(len(subbeat)), subbeat[:, 0])  # remove the last subbeat
-            time_steps = subbeat / audio_length
-            hop_length = 256
-            yp, spec = time_stretch(y, time_steps, hop_length)
-            spec = spec.reshape((spec.shape[0] // SUBBEAT_DIV, -1))
-            pred = model.inference(spec)
-            _, eval_result = evaluate_subbeat_label(subbeat_label, pred)
-            histogram[eval_result % 16] += 1
-            print(eval_result % 16)
-            if (visualize):
-                pred = np.cumsum(pred[:, ::-1], axis=-1)[:, ::-1]
-                pred = np.roll(pred[:, 1:], model.net.remap_offset, axis=0)
-                entry.append_data(yp,io.MusicIO,'music_stretch')
-                # alignment issue (visualize only)
-                entry.append_data(np.repeat(pred, SUBBEAT_DIV, axis=0)[int(SUBBEAT_DIV * 2.5):], io.SpectrogramIO, 'pred')
-
-                tag = np.arange(len(pred))[pred[:, -2] > 0.5] * hop_length * SUBBEAT_DIV / entry.prop.sr
-                tag = [[x, 5] for x in tag]
-                entry.append_data(tag, DownbeatIO, 'tag')
-                # new_beat=np.arange(len(time_steps))[subbeat[:,1]>0]*hop_length/entry.prop.sr
-                # new_beat=[[x,0] for x in new_beat]
-                # entry.append_data(new_beat,DownbeatIO,'new_beat')
-                entry.visualize(['pred', 'tag'],music='music_stretch')
-    histogram = histogram / histogram.sum()
-    print(histogram)
-    plt.bar(np.arange(len(histogram)), histogram)
-    plt.show()
 
 def main():
     split_files = get_split('rwc_multitrack_hierarchy_v6_supervised', 'test')
@@ -197,6 +150,7 @@ def main_downbeat():
 if __name__ == '__main__':
     model = NetworkInterface(TCNClassifier(513, 256, 6, 9, 0.5, remap_offset=20),
         'tcn_audio_metrical_v1.0_crf.cp', load_checkpoint=False)
+    assert(model.finalized)
     # eval_osu(model, visualize=True)
     if (len(sys.argv) != 3):
         print('Usage:', 'tcn_audio_metrical_eval.py', 'audio_path', 'beat_annotation.lab')
@@ -207,8 +161,5 @@ if __name__ == '__main__':
     entry.prop.set('sr', DEFAULT_SR)
     entry.prop.set('win_size', DEFAULT_WIN_SIZE)
     entry.append_file(sys.argv[1], io.MusicIO, 'music')
-    f = open(sys.argv[2], 'r')
-    beat_times = np.array([[float(line.strip()), 1] for line in f.readlines() if line.strip() != ''])
-    f.close()
-    entry.append_data(beat_times, DownbeatIO, 'beat')
+    entry.append_file(sys.argv[2], DownbeatIO, 'beat')
     eval_entry(model, entry, visualize=True)

@@ -45,6 +45,7 @@ class CRFDecoder(nn.Module):
             pre = torch.full((batch_dim, seq_length, n_state), -1, device=log_observation.device)
             forward_var = torch.zeros(batch_dim, self.n_state, device=log_observation.device)
             for i in range(seq_length):
+                print(i, '/', seq_length)
                 if (i == 0):
                     pre[:, i, :] = -1
                 else:

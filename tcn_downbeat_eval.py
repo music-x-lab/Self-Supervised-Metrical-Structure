@@ -231,6 +231,7 @@ def main_downbeat():
 if __name__ == '__main__':
     model = NetworkInterface(TCNClassifier(384, 256, 6, 9, 0.1, remap_offset=11),
                              'tcn_downbeat_unsupervised_v3.0_1024_context_6_tcn', load_checkpoint=False)
+    assert(model.finalized)
     if (len(sys.argv) != 2):
         print('Usage:', 'tcn_downbeat_eval.py', 'midi_path.midi')
         exit(0)
