@@ -25,7 +25,7 @@ See ``output`` for the full results of the MIDI analysis model on RWC-POP.
 
 ## Pretrained models
 
-The pre-trained models are available [here](https://drive.google.com/drive/folders/1Er9CJkGLCOTd5ztCblOoGpRx3c3GNcg7?usp=sharing). Please download and extract all ``*.pt`` files to the folder ``cache_data`` before continue.
+The pre-trained models are available [here](https://drive.google.com/drive/folders/1Er9CJkGLCOTd5ztCblOoGpRx3c3GNcg7?usp=sharing). Please download and extract all ``*.sdict`` files to the folder ``cache_data`` before continue.
 
 ## Run models on your own samples
 
@@ -38,6 +38,8 @@ Notice:
 * Beat labels need to be accurete up to 32th-note level. Beat labels that fail to achieve this precision may cause degraded model performance. Notice that many automatic beat tracking models (e.g., madmom) might have precision issues.
 * Currently, only 4/4 songs are supported.
 
+### Run the MIDI model
+
 For the MIDI model, run the following code to analyze ``example_input/midi_input/RM-P001.SMF_SYNC.MID``.
 
 ```cmd
@@ -45,6 +47,8 @@ python tcn_downbeat_eval.py example_input/midi_input/RM-P001.SMF_SYNC.MID
 ```
 
 The program will produce two MIDI files ``*_crf.mid`` and ``*_raw.mid`` stored in the ``output`` folder. The file formats are already described above.
+
+### Run the audio model
 
 For the audio model, you also need to install [sonic visualizer](https://www.sonicvisualiser.org/) and add it to your environment variable.
 Make sure your sonic visualizer folder is in your ``PATH`` environment variable. To check this, running the following command on your console should open sonic visualizer:
@@ -80,9 +84,12 @@ The program will call sonic visualizer (if correctly installed) to visualize the
 
 * A beat-sync version of your music file (time-stretched according to your beat labels to ensure a constant BPM)
 * A time instance layer showing hypermetrical structure analysis results (requires correct downbeat labels)
+![image](https://user-images.githubusercontent.com/13694510/199000802-f76a11af-9cf6-4f67-ab44-6b8b564dbf9a.png)
 * A spectrogram layer showing the raw prediction of the model on L=8 metrical layers.
+![image](https://user-images.githubusercontent.com/13694510/199000769-c0815765-2eff-47eb-8d9d-78603289c718.png)
 
-Notice: an imprecise beat label will likely to make low-confident predictions like this:
+Notice: imprecise beat labels will likely cause low-confident predictions like this:
+![image](https://user-images.githubusercontent.com/13694510/199000899-ba5e13cb-18be-421a-84e8-e26c5545a5a2.png)
 
 ## Credits
 
