@@ -13,6 +13,7 @@ Preprint: https://arxiv.org/abs/2210.17183
 * Demos
 * Data annotations (for evaluation only)
 * More information on training data (to be added)
+* Model training (to be added)
 * Baseline models for reproduction (to be added)
 
 ## Demo
